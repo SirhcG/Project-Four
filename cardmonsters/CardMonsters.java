@@ -10,6 +10,7 @@ import gamebase.CardBase;
 //import tyrantunleashed.*;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 /**
  *
  * @author planb
@@ -18,13 +19,16 @@ import java.util.ArrayList;
 //sets up and starts the cardmonsters game
 public class CardMonsters {
     
-		AbstractFactory cardFactory;
-		AbstractFactory playerFactory;
+        AbstractFactory cardFactory;
+        AbstractFactory playerFactory;
         MonsterPlayer copy;
         MonsterPlayer first;
         MonsterPlayer second;
         MonsterPlayer third;
+        MonsterPlayer fourth;
+        MonsterPlayer fifth;
         CampaignBattle battle;
+        MonsterDuel battle2;
 	
      public CardMonsters() {
          
@@ -45,14 +49,27 @@ public class CardMonsters {
          CardBase eight = cardFactory.getCard("melee");
          CardBase nine = cardFactory.getCard("melee");
          
+         CardBase ten = cardFactory.getCard("melee");
+         CardBase eleven = cardFactory.getCard("melee");
+         CardBase twelve = cardFactory.getCard("melee");
+         
+         CardBase a = cardFactory.getCard("melee");
+         CardBase b = cardFactory.getCard("melee");
+         CardBase c = cardFactory.getCard("melee");
+         
+         
+         
          first = playerFactory.getPlayer("user");
          second = playerFactory.getPlayer("opponent");
          third = playerFactory.getPlayer("opponent");
+         fourth = playerFactory.getPlayer("opponent");
+         fifth = playerFactory.getPlayer("opponent");
          
          ArrayList<MonsterPlayer> opp = new ArrayList<>();
          opp.add(second);
          opp.add(third);
-         
+         opp.add(fourth);
+         opp.add(fifth);
         
          //putting the cards into the hand ArrayList
          ArrayList<CardBase> val = new ArrayList<>();
@@ -70,20 +87,50 @@ public class CardMonsters {
          val3.add((CardBase) eight);
          val3.add((CardBase) nine);
          
+         ArrayList<CardBase> val4 = new ArrayList<>();
+         val4.add((CardBase) ten);
+         val4.add((CardBase) eleven);
+         val4.add((CardBase) twelve);
+         
+         ArrayList<CardBase> val5 = new ArrayList<>();
+         val5.add((CardBase) a);
+         val5.add((CardBase) b);
+         val5.add((CardBase) c);
+         
+        // System.out.println(ten.find(1).one);
+         
          //attaches the hand to the player
          first.setCards(val);
          second.setCards(val2);
          third.setCards(val3);
+         fourth.setCards(val4);
+         fifth.setCards(val5);
          battle = new CampaignBattle(first, opp);
-
+         battle2 = new MonsterBattle(first, opp);
+        
+         
          
         }
      
      //starts the cardmonsters game
      public void go(){
-         battle.begin();
+         
+         System.out.println("Please choose between simple campaign [1] or advance campaign [2] \n");
+         Scanner choice = new Scanner(System.in);
+         while(true){
+         System.out.print(">  ");
+         int val = choice.nextInt();
+         if(val == 1){ 
+            battle.begin();
+            break;
+         }else if(val == 2){
+            battle2.begin();
+            break;
+         }else
+             System.out.println("Invalid Entry\n");
+         }  
      }
     
-}
+ }
 
 

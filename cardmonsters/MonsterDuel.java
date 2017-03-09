@@ -6,7 +6,16 @@
 package cardmonsters;
 
 import gamebase.Move;
+import gamebase.Player;
+import gamebase.Player.StrategyType;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -18,44 +27,120 @@ import java.util.Scanner;
  */
 
 //the superclass that handles battle logic for cardmonsters
-public abstract class MonsterDuel {
+public abstract class MonsterDuel implements Serializable{
     
-    private ArrayList<MonsterPlayer> players;
+        private ArrayList<MonsterPlayer> players;
+        private CampaignTree opponents;
 	MonsterMove move;
 	MonsterdoMoveCommand mCommand;
-	int dmg = 0, health = 0, val = 0, turn = 1;
+	int dmg = 0, health = 0, val = 0, turn = 1, oppCount = 1, size = 0, count = 0, check = 0, num = 0, keyVal = 0;
     
-    public MonsterDuel(MonsterPlayer one, MonsterPlayer two){
+    public MonsterDuel(MonsterPlayer one, ArrayList<MonsterPlayer> two){
     	
-    	players = new ArrayList<>();
-    	players.add(one);
-    	players.add(two);
+        opponents = new CampaignTree();
+        for(int i = 0; i<two.size(); i++){
+            opponents.addNode(i, two.get(i), two.get(i).getName());
+        }
+        num = two.size();
+        size = two.size();
+        players = new ArrayList<>();
+        for(int i=0; i<two.size(); i++){
+        players.add(deepClone(one));
+    }
     }
     
-    public void start(){
-    	
-    	Scanner sc = new Scanner(System.in);
-    	int input = 0;
-    	MonsterPlayer player = players.get(0);
-    	MonsterPlayer opp = players.get(1);
-    	
-    	while(true){
-    		player.showInfo();
-    		opp.showInfo();
+    public void begin(){
+        
+        Scanner val = new Scanner(System.in);
+        int input = 0;
+        
+        checkSave();		
+        
+    
+        System.out.println("Welcome to the card monster campaign!!");        
+        System.out.println("Opponents remaining: " + num + "\n");
+        MonsterPlayer clone = players.get(0);
+        
+        while(true){
+            opponents.inOrder(opponents.root);
+            System.out.println("\nPlease choose a listed opponent!! \n");
+            System.out.print(">  ");
+            Scanner choice = new Scanner(System.in);
+            int value = choice.nextInt();
+            if(opponents.find(value) == null){
+                System.out.println("Invalid Entry \n");
+                continue;
+            }else{
+                keyVal = value;
+                break;
+            }
+            
+        }
+        
+        while(true){
+            
+                myTurn();
+                
+    		oppTurn();
+                
+    		endOfTurn(); //end of turn stuff
+    	}
+    }
+    
+    public void oppTurn(){
+        
+        Scanner val = new Scanner(System.in);
+        int input = 0;
+        
+        MonsterPlayer boss = opponents.find(keyVal).one;
+        MonsterPlayer clone = players.get(0);
+        
+        
+        System.out.println("\nOpponent's turn starts!\n");
+    		stop();
     		
-
-    		if(player.getHand().size() > 0){
+    		move = (MonsterMove) boss.getStrategy().nextMove();
+    		if (move != null){
+    			
+    			mCommand = new MonsterdoMoveCommand(boss, (MonsterMove) move);
+    			mCommand.execute();
+    			stop();
+    		}else
+    			System.out.println("\nOpponent has no cards to play! \n");
+    		
+    		 //conducts battle for player 2
+                
+                check();
+    		battle(2);
+                --check;
+                check();
+        
+    }
+    
+    public void myTurn(){
+        
+        Scanner val = new Scanner(System.in);
+        int input = 0;
+        
+        MonsterPlayer boss = opponents.find(keyVal).one;
+        MonsterPlayer clone = players.get(0);
+        
+        clone.showInfo();
+        boss.showInfo();
+            
+            if(clone.getHand().size() > 0){
     			
     			System.out.println("\nChoose which card to play. Numbering starts at 0\n");
-        		input = sc.nextInt(); //input for which card to play
-        		
-	    		while(input >= player.getHand().size()){ //if invalid number
+        		input = val.nextInt(); //input for which card to play
+        		System.out.print(">  ");
+                        
+	    		while(input >= clone.getHand().size()){ //if invalid number
 	    			System.out.println("\nInvalid choice. Choose which card to play. Numbering starts at 0\n");
-	        		input = sc.nextInt();
+	        		input = val.nextInt();
 	    		}
 	    		
 	    		move = new MonsterMove(input); //make the move
-	    		mCommand = new MonsterdoMoveCommand(player, move); //attempting to implement command pattern
+	    		mCommand = new MonsterdoMoveCommand(clone, move); //attempting to implement command pattern
 	    		mCommand.execute();
 	    		
     		}
@@ -63,32 +148,49 @@ public abstract class MonsterDuel {
     			System.out.println("\nYou have no cards to play. \n");
     			stop();
     		}
-    			
+            
+                clone.showInfo();
+    		boss.showInfo();
     		
-    		player.showInfo();
-    		opp.showInfo();
-    		
+                check();
     		battle(1); //conducts battle for player 1
+                ++check;
     		stop(); //waits for user button press to continue
-    		
-    		System.out.println("\nOpponent's turn starts!\n");
-    		stop();
-    		
-    		move = (MonsterMove) opp.getStrategy().nextMove();
-    		if (move != null){
-    			
-    			mCommand = new MonsterdoMoveCommand(opp, (MonsterMove) move);
-    			mCommand.execute();
-    			stop();
-    		}else
-    			System.out.println("\nOpponent has no cards to play! \n");
-    		
-    		 //conducts battle for player 2
-    		battle(2);
-    		
-    		endOfTurn(); //end of turn stuff
-    	}
+    		check();
+        
+        
+        
+        
     }
+    
+    public void checkSave(){
+        
+         while(true){
+                System.out.println("Do you have a perviously saved game?? [Y/N] \n");
+                System.out.print(">  ");
+                Scanner choice = new Scanner(System.in);
+                char s = choice.next().charAt(0);
+                if(Character.isWhitespace(s)){
+                    continue;
+                }
+                if(s == 'Y'  || s == 'y'){
+                    read();
+                    if(check == 1 && players.get(0).getCardInField() > 0){
+                        oppTurn();
+                        check = 0;
+                    }else if(check == 0 && opponents.find(keyVal).one.getCardInField() > 0){
+                        begin();
+                    }
+                    break;
+                }else if(s == 'N' || s == 'n'){
+                    break;
+                }else
+                    System.out.println("Invalid Entry");
+                }
+        
+        
+    }
+     
     
     public void battle(int turnPlayer){
 	   
@@ -97,15 +199,15 @@ public abstract class MonsterDuel {
     	
 	   //if its the players turn
 		MonsterPlayer one = players.get(0);
-		MonsterPlayer two = players.get(1);
+		MonsterPlayer two = opponents.find(keyVal).one;
 
 		//if its the opponents turn
 		if(turnPlayer == 2){
-			one = players.get(1);
+			one = opponents.find(keyVal).one;
 			two = players.get(0);
 		}
 	   
-		one.showInfo();
+		//one.showInfo();
 		
 		
 		
@@ -133,20 +235,90 @@ public abstract class MonsterDuel {
 	       }    
    }
    
-   private boolean gameOver(){
-	   if(players.get(0).getCardInField() == 0){
+   private void check(){
+	   if(players.get(0).getCardInField() == 0 && turn > 2){
 		   System.out.println("OPPONENT WINS");
 		   System.exit(0);
-		   return true;
+		   
 	   }   
-	   else if(players.get(1).getCardInField() == 0){
-		   System.out.println("PLAYER WINS");
-		   System.exit(0);
-		   return true;
-	   }else
-		   return false;
+	   else if(opponents.find(keyVal).one.getCardInField() == 0 && turn > 2){
+		   System.out.println("PLAYER BEAT OPPONENT " + oppCount);
+                   oppCount++;
+                   ++count;
+                   turn = 1;
+                   
+                   if(size == count){
+                       System.out.println("Out of Opponents Game Over!!\n");
+                       System.exit(0);
+                   }else
+                   update();
+                   save();
+                  // stop();
+                   begin();
+                   
+           }
+   }
+   
+   private void save(){
+       while(true){
+       System.out.println("Would you like to save?? [Y/N] ");
+       System.out.print(">  ");
+       Scanner choice = new Scanner(System.in);
+       char s = choice.next().charAt(0);
+       if(s == 'Y'  || s == 'y'){
+       try{
+       FileOutputStream out = new FileOutputStream("Campaign.txt");
+       ObjectOutputStream oos = new ObjectOutputStream(out);
+       oos.writeObject(MonsterDuel.this);
+       oos.close();
+       System.exit(0);
+       }catch(Exception e){
+           System.out.println(e);
+       }
+       }
+       else if(s == 'N' || s == 'n'){
+           break;
+       }
+       else
+           System.out.println("Invalid Entry");
+       }
+    }
+   
+   private void betweenSave(){
+       save();
+    }
+   
+   private void read(){
+       try{
+       FileInputStream fis = new FileInputStream("Campaign.txt");
+       ObjectInputStream ois = new ObjectInputStream(fis);
+       MonsterDuel resume = (MonsterDuel) ois.readObject();
+       ois.close();
+       opponents = resume.opponents;
+       players = resume.players;
+       oppCount = resume.oppCount;
+       count = resume.count;
+       check = resume.check;
+       num = resume.num;
+       }catch(Exception e){
+           System.out.println(e);
+           System.out.println("\nYou do not have a perviously saved game please restart the game!!");
+           System.exit(0);
+           
+       }
+   }
+   
+   //updates opponent array between games?
+   private void update(){
+      
+       players.remove(0);
+       players.trimToSize();
+       opponents.remove(keyVal);
+       --num;
+               
    }
 
+   //all this does is pause the game and let you read the output
    private void stop(){
 	   try {
 			System.in.read();
@@ -154,19 +326,39 @@ public abstract class MonsterDuel {
 			e.printStackTrace();
 		}
    }
+    
+    
+   
    
    private void endOfTurn(){ 
 	   for(int i = 0; i< players.get(0).getHand().size();i++){ //clears any temporary damage boosts for player
 		   players.get(0).getHand().get(i).setDamage(players.get(0).getHand().get(i).getAttack());
 	   }
 	   
-	   for(int i = 0; i< players.get(1).getHand().size();i++){ //clears any temporary damage boosts for opponent
-		   players.get(1).getHand().get(i).setDamage(players.get(1).getHand().get(i).getAttack());
+	   for(int i = 0; i< opponents.find(keyVal).one.getHand().size();i++){ //clears any temporary damage boosts for opponent
+		   opponents.find(keyVal).one.getHand().get(i).setDamage(opponents.find(keyVal).one.getHand().get(i).getAttack());
 	   }
 	   
 	   turn++;
 	   
    }
+   
+    public static MonsterPlayer deepClone(MonsterPlayer object) 
+   {
+   
+       try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(object);
+            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            
+            return (MonsterPlayer) ois.readObject();
+            }catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+            }
+    }
 }
 
     

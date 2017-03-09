@@ -5,14 +5,17 @@
  */
 package cardmonsters;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+
 /**
  *
  * @author planb
  */
 
-public class MonsterBattle extends MonsterDuel {
+public class MonsterBattle extends MonsterDuel implements Serializable {
     
-     public MonsterBattle(MonsterPlayer one, MonsterPlayer two) {
+     public MonsterBattle(MonsterPlayer one, ArrayList<MonsterPlayer> two) {
         super(one, two);
     }
     

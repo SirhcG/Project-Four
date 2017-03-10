@@ -9,6 +9,7 @@ import gamebase.Player;
 import gamebase.CardBase;
 //import tyrantunleashed.*;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Scanner;
 /**
@@ -29,6 +30,9 @@ public class CardMonsters {
         MonsterPlayer fifth;
         CampaignBattle battle;
         MonsterDuel battle2;
+        CampaignServer mcserver;
+        CampaignClient mcclient;
+        
 	
      public CardMonsters() {
          
@@ -113,9 +117,9 @@ public class CardMonsters {
         }
      
      //starts the cardmonsters game
-     public void go(){
+     public void go() throws RemoteException{
          
-         System.out.println("Please choose between simple campaign [1] or advance campaign [2] \n");
+         System.out.println("Please choose between simple campaign [1] or advance campaign [2] or host a campaign battle as server[3] or connect to remote battle as client[4]\n");
          Scanner choice = new Scanner(System.in);
          while(true){
          System.out.print(">  ");
@@ -126,6 +130,12 @@ public class CardMonsters {
          }else if(val == 2){
             battle2.begin();
             break;
+         }else if(val == 3){
+        	 mcserver = new CampaignServer(battle);
+        	 mcserver.startServer();
+         }else if(val == 4){
+        	 mcclient = new CampaignClient();
+        	 mcclient.startClient();
          }else
              System.out.println("Invalid Entry\n");
          }  

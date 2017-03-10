@@ -19,6 +19,4 @@ public class CampaignBattle extends MonsterCampaign {
     public CampaignBattle(MonsterPlayer main, ArrayList<MonsterPlayer> array){
         super(main, array);
     }
-    
-    
 }

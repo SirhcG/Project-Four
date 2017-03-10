@@ -25,7 +25,7 @@ import java.util.Scanner;
  */
 
 //class that handles the campaign mode in cardmonsters
-public abstract class MonsterCampaign implements Serializable {
+public abstract class MonsterCampaign implements Serializable, Campaign {
    
     private static final long serialVersionUID = -1789160225751330715L;
     private ArrayList<MonsterPlayer> opponents;
@@ -339,6 +339,10 @@ public abstract class MonsterCampaign implements Serializable {
                     return null;
             }
     }
+   
+   public void test(){
+	   System.out.println("test");
+   }
 }
 
             

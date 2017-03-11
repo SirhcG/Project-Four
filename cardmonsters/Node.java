@@ -18,15 +18,15 @@ import java.io.Serializable;
  */
 public class Node implements Serializable {
     
-    int key;
-    MonsterPlayer one;
-    String name;
+    public int key;
+    public MonsterPlayer one;
+    public String name;
     
     
     Node leftChild;
     Node rightChild;
     
-    Node(int key, MonsterPlayer opp, String name){
+    public Node(int key, MonsterPlayer opp, String name){
         
         this.key = key;
         this.one = opp;
